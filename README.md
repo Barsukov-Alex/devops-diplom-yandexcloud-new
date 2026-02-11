@@ -103,6 +103,67 @@
 3. Команда `kubectl get pods --all-namespaces` отрабатывает без ошибок.
 
 ---
+
+### Решение. Создание Kubernetes кластера 
+
+Разворачиваем Kubernetes кластер из репозитория Kubespray.  
+Для этого клонируем репозиторий на свою рабочую машину:  
+ <img src = "img/2.1.jpg" width = 100%> 
+
+При создании облачной инфраструктуры с помощью terraform, мы создали inventory-файл `hosts.yaml` с помощью кода в файле [ansible.tf](./terraform/backend/ansible.tf):
+```bash
+resource "local_file" "hosts_cfg_kubespray" {
+  content  = templatefile("${path.module}/hosts.tftpl", {
+    workers = yandex_compute_instance.worker
+    masters = yandex_compute_instance.master
+  })
+  filename = "../../../kubespray/inventory/mycluster/hosts.yaml"
+  
+  depends_on = [
+    yandex_compute_instance.master,
+    yandex_compute_instance.worker
+  ]
+}
+```  
+Который по [шаблону](./terraform/backend/hosts.tftpl) автоматически заполнит inventory-файл ip адресами нод.  
+
+
+Переходим на своем рабочем ПК в директорию `/kubespray` и выполняем команды:  
+
+```bash  
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```  
+
+
+После установки зависимостей, с помощью `ansible` (выполнять команду при активированном виртуальном окружении `source .venv/bin/activate` из директории `kubespray/`):  
+   
+```bash  
+ansible-playbook -i inventory/mycluster/hosts.yaml -u user --become --become-user=root --private-key=~/.ssh/id_rsa -e 'ansible_ssh_common_args="-o StrictHostKeyChecking=no"' cluster.yml --flush-cache  
+```  
+Установка Kubernetes-кластера методом Kubespray завершена.  
+Результат выполнения команды:  
+<img src = "img/2.2.jpg" width = 100%> 
+
+
+
+Создаем конфигурационный файл `~/.kube/config` кластера Kubernetes на мастер-ноде:  
+```bash  
+  mkdir -p $HOME/.kube  
+  cp -i /etc/kubernetes/admin.conf $HOME/.kube/config  
+  chown $(id -u):$(id -g) $HOME/.kube/config  
+``` 
+
+
+Результаты выполнение:
+Поды:
+<img src = "img/2.3.jpg" width = 100%> 
+Ноды
+<img src = "img/2.4.jpg" width = 100%> 
+
+
+
 ### Создание тестового приложения
 
 Для перехода к следующему этапу необходимо подготовить тестовое приложение, эмулирующее основное приложение разрабатываемое вашей компанией.
