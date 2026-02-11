@@ -446,10 +446,10 @@ http://158.160.216.4
 [terraform-bucket.yml](./.github/workflows/terraform-bucket.yml) - для развертывания бакета и сервисного аккаунта,  
 [terraform-backend.yml](./.github/workflows/terraform-backend.yml) - для развертывания VPS, сети, подсети и прочей инфраструктуры. 
 - Добавляем секретные данные, которые будут передаваться при исполнении манифестов:  
-![task6.1.1](./img/task6.1.1.png)  
+<img src = "img/5.1.jpg" width = 100%>   
 - Манифест выполняется при ручном запуске, а также при git push кода Terraform в main ветку репозитория.  
 - Результат выполнения манифестов:  
-![task7.1.5](./img/task7.1.5.png)
+<img src = "img/5.2.jpg" width = 100%> 
 
 
 
