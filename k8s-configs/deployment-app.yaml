@@ -1,0 +1,31 @@
+## deployment-app.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-application-1
+  namespace: test-application-1
+  labels:
+    app: web-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - name: diplom-test-app
+        image: mozdoksity/nginx:v1
+        resources:
+          requests:
+            cpu: "1"
+            memory: "200Mi"
+          limits:
+            cpu: "2"
+            memory: "400Mi"
+        ports:
+        - containerPort: 80

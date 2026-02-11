@@ -17,7 +17,7 @@ resource "yandex_lb_network_load_balancer" "nlb-grafana" {
   listener {
     name        = "grafana-listener"
     port        = 80
-    target_port = 30050
+    target_port = 30070
     external_address_spec {
       ip_version = "ipv4"
     }
@@ -27,7 +27,7 @@ resource "yandex_lb_network_load_balancer" "nlb-grafana" {
     healthcheck {
       name = "healthcheck"
       tcp_options {
-        port = 30050
+        port = 30070
       }
     }
   }
@@ -40,7 +40,7 @@ resource "yandex_lb_network_load_balancer" "nlb-web-app" {
   listener {
     name        = "web-app-listener"
     port        = 80
-    target_port = 30051
+    target_port = 30071
     external_address_spec {
       ip_version = "ipv4"
     }
@@ -50,7 +50,7 @@ resource "yandex_lb_network_load_balancer" "nlb-web-app" {
     healthcheck {
       name = "healthcheck"
       tcp_options {
-        port = 30051
+        port = 30071
       }
     }
   }

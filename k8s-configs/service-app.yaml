@@ -1,0 +1,15 @@
+## service-app.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-application-1-service
+  namespace: test-application-1
+spec:
+  type: NodePort
+  selector:
+    app: web-app
+  ports:
+  - protocol: TCP
+    port: 80
+    nodePort: 30071

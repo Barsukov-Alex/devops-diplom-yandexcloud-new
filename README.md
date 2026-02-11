@@ -317,6 +317,115 @@ barsukov@barsukov:~/Test-application-1$
 Способ выполнения:
 1. Воспользоваться пакетом [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus), который уже включает в себя [Kubernetes оператор](https://operatorhub.io/) для [grafana](https://grafana.com/), [prometheus](https://prometheus.io/), [alertmanager](https://github.com/prometheus/alertmanager) и [node_exporter](https://github.com/prometheus/node_exporter). Альтернативный вариант - использовать набор helm чартов от [bitnami](https://github.com/bitnami/charts/tree/main/bitnami).
 
+---
+### Решение.
+
+Скопируем конфигурационный файл созданного kubernetes-кластера с мастер-ноды на нашу рабочую машину:  
+```bash
+  scp user@93.77.183.42:~/.kube/config ~/.kube/diplom-config
+```  
+Отредактируем в конфигурационном файле IP-адрес (с локального на публичный IP мастер-ноды):  
+```bash
+  nano ~/.kube/diplom-config  
+```  
+Применим новый конфигурационный файл для k8s:  
+```bash
+  export KUBECONFIG=~/.kube/diplom-config  
+``` 
+Проверяем
+<img src = "img/4.1.jpg" width = 100%> 
+
+Добавляем helm репозиторий:  
+```bash  
+  helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+``` 
+Сохраним значения по умолчанию Helm чарта prometheus-community в [файл](./k8s-configs/grafana-values.yaml) в директории `k8s-configs` и отредактируем его:
+```bash  
+  helm show values prometheus-community/kube-prometheus-stack > grafana-values.yaml
+``` 
+Изменяем пароль по умолчанию (значение для `adminPassword:`) для входа в Grafana, а также изменим сервис, присвоим ему порт 30050:  
+```yml 
+grafana:
+  service:
+    portName: http-web
+    type: NodePort
+    nodePort: 30070
+```  
+Выполняем установку prometheus-community:  
+```bash  
+helm upgrade --install monitoring prometheus-community/kube-prometheus-stack --create-namespace -n monitoring -f k8s-configs/grafana-values.yaml
+``` 
+<img src = "img/4.2.jpg" width = 100%> 
+
+После установки, проверяем поды в namespace monitoting:  
+<img src = "img/4.3.jpg" width = 100%>   
+Проверяем ноды в namespace monitoting:
+<img src = "img/4.4.jpg" width = 100%>  
+
+Проверяем web-интерфейс Grafana и проходим авторизацию с заранее заданным в grafana-values.yaml паролем: 
+http://93.77.183.42:30070
+login: admin
+passw: netology
+
+<img src = "img/4.5.jpg" width = 100%>  
+
+Авторизация проходит успешно, данные о состоянии кластера отображаются на дашбордах:  
+<img src = "img/4.6.jpg" width = 100%>   
+<img src = "img/4.7.jpg" width = 100%> 
+
+
+
+Развёртывание системы мониторинга успешно завершено. 
+
+
+
+Далее развёртываем наше тестовое приложение на Kubernetes кластере.  
+Создаем отдельный namespace, в котором будем развёртывать тестовое приложение:  
+```bash  
+  kubectl create namespace test-application-1
+``` 
+Пишем [манифест](./k8s-configs/deployment-app.yaml) Deployment с тестовым приложением.  
+Применяем манифест Deployment и проверяем результат:  
+```bash  
+  kubectl apply -f deployment-app.yaml -n test-application-1 
+```  
+<img src = "img/4.8.jpg" width = 100%>  
+
+Пишем [манифест](./k8s-configs/service-app.yaml) сервиса с типом NodePort для доступа к web-интерфейсу тестового приложения:  
+Применяем манифест сервиса и проверяем результат:
+```bash  
+  kubectl apply -f service-app.yaml -n test-application-1
+``` 
+<img src = "img/4.9.jpg" width = 100%>   
+
+
+Сервис создан. 
+Проверяем доступ к приложению по публичному IP:  
+http://93.77.183.42:30071/
+<img src = "img/4.10.jpg" width = 100%> 
+
+
+Так как у нас несколько реплик приложения, создадим [балансировщик нагрузки](./terraform/backend/load-balancer.tf).  
+Выполняем код `load-balancer.tf` командой `terraform apply`:  
+<img src = "img/4.11.jpg" width = 100%> 
+
+
+
+Проверяем работу балансировщика нагрузки. 
+Тестовое приложение и Grafana открываются на порту 80:  
+
+- Тестовое приложение: 
+http://158.160.223.3/
+<img src = "img/4.12.jpg" width = 100%>  
+http://158.160.216.4
+- Grafana:
+http://158.160.216.4  
+<img src = "img/4.13.jpg" width = 100%> 
+
+
+
+
+
 ### Деплой инфраструктуры в terraform pipeline
 
 1. Если на первом этапе вы не воспользовались [Terraform Cloud](https://app.terraform.io/), то задеплойте и настройте в кластере [atlantis](https://www.runatlantis.io/) для отслеживания изменений инфраструктуры. Альтернативный вариант 3 задания: вместо Terraform Cloud или atlantis настройте на автоматический запуск и применение конфигурации terraform из вашего git-репозитория в выбранной вами CI-CD системе при любом комите в main ветку. Предоставьте скриншоты работы пайплайна из CI/CD системы.
