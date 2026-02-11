@@ -13,7 +13,9 @@ contrib/offline/offline-files.tar.gz
 .cache
 *.bak
 *.tfstate
+*.tfvars
 *.tfstate*backup
+*.tfvars
 *.lock.hcl
 .terraform/
 contrib/terraform/aws/credentials.tfvars
@@ -23,6 +25,9 @@ contrib/terraform/aws/credentials.tfvars
 *~
 vagrant/
 plugins/mitogen
+
+# Local files
+locals.tf
 
 # Ansible inventory
 inventory/*
@@ -120,3 +125,6 @@ tmp.md
 # Ansible collection files
 kubernetes_sigs-kubespray*tar.gz
 ansible_collections
+
+# Secrets
+secrets.yaml

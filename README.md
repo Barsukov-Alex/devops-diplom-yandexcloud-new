@@ -1,4 +1,4 @@
-# Дипломный практикум в Yandex.Cloud
+# Дипломный практикум в Yandex.Cloud Барсуков А.А.
   * [Цели:](#цели)
   * [Этапы выполнения:](#этапы-выполнения)
      * [Создание облачной инфраструктуры](#создание-облачной-инфраструктуры)
@@ -51,6 +51,23 @@
 2. Полученная конфигурация инфраструктуры является предварительной, поэтому в ходе дальнейшего выполнения задания возможны изменения.
 
 ---
+
+### Решение. Создание облачной инфраструктуры  
+1. Создаем сервисный аккаунт [service-account-terraform.tf](./terraform/service-account-S3/service-account-terraform.tf) с правами `editor`. 
+2. Подготавливаем S3 [bucket](./terraform/service-account-S3/bucket.tf) в созданном Яндекс Облаке аккаунте(создание бакета через terraform). - Создаем директорию `backend`.
+  <img src = "img/1.1.jpg" width = 100%> 
+  <img src = "img/1.2.jpg" width = 100%> 
+ Сохраняем ключи ACCESS_KEY и SECRET_KEY в файл `backend/backend.tfvars` для дальнейшего использования. 
+
+3. Создаем [конфигурацию](./terraform/backend/backend.tf) Terrafrom для использования ранее созданного бакета как бекенд для хранения стейт файла.  
+   
+     Выполняем команды из директории `backend`:
+     ``` bash  
+     source backend.tfvars  
+     terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_key=$SECRET_KEY"  
+     ```
+
+
 ### Создание Kubernetes кластера
 
 На этом этапе необходимо создать [Kubernetes](https://kubernetes.io/ru/docs/concepts/overview/what-is-kubernetes/) кластер на базе предварительно созданной инфраструктуры.   Требуется обеспечить доступ к ресурсам из Интернета.
